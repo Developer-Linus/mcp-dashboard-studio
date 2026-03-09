@@ -678,7 +678,7 @@ dependencies = [
 requires-dist = [
     { name = "byllm", specifier = "==0.5.3" },
     { name = "jac-client", specifier = "==0.3.3" },
-    { name = "jac-mcp", specifier = "==0.1.2" },
+    { name = "jac-mcp", specifier = ">=0.1.2" },
     { name = "jaclang", specifier = "==0.11.3" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
