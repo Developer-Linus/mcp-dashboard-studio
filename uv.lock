@@ -151,7 +151,7 @@ wheels = [
 
 [[package]]
 name = "byllm"
-version = "0.5.3"
+version = "0.5.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jaclang" },
@@ -159,9 +159,9 @@ dependencies = [
     { name = "loguru" },
     { name = "pillow" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9c/a8/4dc7807e46034930f49e7bd33f53fa21825d08981e1c781b7557ee7aac76/byllm-0.5.3.tar.gz", hash = "sha256:21c67c36953ca988ee5a9bf90b0585faff20238d6fc6338dfd07f6b5ab25ec0e", size = 146896, upload-time = "2026-02-28T16:29:13.833Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/47/6947bc591bf0de8fd259e82329dccb73cfe5797e2f6df0e32c9a7b8a7bf3/byllm-0.5.5.tar.gz", hash = "sha256:e344a75dc3fc24d725e2065ed88af5f20d460e0822db52506c67e92fdd139969", size = 170925, upload-time = "2026-03-10T02:40:29.543Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/b3/9432f6d3a32931bc3b39cfdedad15146a8336f1bdc91c6ec3b3359b29d1d/byllm-0.5.3-py3-none-any.whl", hash = "sha256:61e4d062609395b6ced1d9fae41f615d4ed2780ca19004850b10761ebd330cba", size = 166791, upload-time = "2026-02-28T16:29:12.533Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/14/be6f6bc52904dd4532f569ecc76c76e4b7fc6056c8a7c11301f260b11b7d/byllm-0.5.5-py3-none-any.whl", hash = "sha256:4b570d84ec8f2e26491aa920796fb9abe93a797f3b58069223702927d046ba80", size = 192949, upload-time = "2026-03-10T02:40:28.327Z" },
 ]
 
 [[package]]
@@ -413,11 +413,11 @@ wheels = [
 
 [[package]]
 name = "filelock"
-version = "3.25.0"
+version = "3.25.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/77/18/a1fd2231c679dcb9726204645721b12498aeac28e1ad0601038f94b42556/filelock-3.25.0.tar.gz", hash = "sha256:8f00faf3abf9dc730a1ffe9c354ae5c04e079ab7d3a683b7c32da5dd05f26af3", size = 40158, upload-time = "2026-03-01T15:08:45.916Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/8b/4c32ecde6bea6486a2a5d05340e695174351ff6b06cf651a74c005f9df00/filelock-3.25.1.tar.gz", hash = "sha256:b9a2e977f794ef94d77cdf7d27129ac648a61f585bff3ca24630c1629f701aa9", size = 40319, upload-time = "2026-03-09T19:38:47.309Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/0b/de6f54d4a8bedfe8645c41497f3c18d749f0bd3218170c667bf4b81d0cdd/filelock-3.25.0-py3-none-any.whl", hash = "sha256:5ccf8069f7948f494968fc0713c10e5c182a9c9d9eef3a636307a20c2490f047", size = 26427, upload-time = "2026-03-01T15:08:44.593Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/b8/2f664b56a3b4b32d28d3d106c71783073f712ba43ff6d34b9ea0ce36dc7b/filelock-3.25.1-py3-none-any.whl", hash = "sha256:18972df45473c4aa2c7921b609ee9ca4925910cc3a0fb226c96b92fc224ef7bf", size = 26720, upload-time = "2026-03-09T19:38:45.718Z" },
 ]
 
 [[package]]
@@ -639,27 +639,27 @@ wheels = [
 
 [[package]]
 name = "jac-client"
-version = "0.3.3"
+version = "0.3.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jaclang" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/f0/172357b5c7c368ae9cd05e4329d14cb85c64b7c5802e9faee93361762d99/jac_client-0.3.3.tar.gz", hash = "sha256:099e37d4776358aebd0038b2f9933885797c854e2d4b4bd9165a5da40c14b0d6", size = 660765, upload-time = "2026-02-28T16:29:17.934Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a9/d1/8d236d78fb2cb41247fc84b7a14007e250e3b9568bf3fa32964b328da9b2/jac_client-0.3.4.tar.gz", hash = "sha256:e3e8c052ad9b6ef6f8b32e558bbd84b4d3a5dfb94d197123e0358d610d763373", size = 664304, upload-time = "2026-03-06T12:06:38.936Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/b3/2a10c9d3ef2cfb2da218f680b578b78aad281aa66fbfe35159f58ce98d36/jac_client-0.3.3-py3-none-any.whl", hash = "sha256:8ab7e3edbbb1177293e6830e1042563b3eb2c68597835f326fc42335b5564d9f", size = 837950, upload-time = "2026-02-28T16:29:16.485Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/fa/119770a6f0da10593eef4773edf22fdfd760226705d0281deed0f22ff8c0/jac_client-0.3.4-py3-none-any.whl", hash = "sha256:8cd016de683b5e0b76decdb88911d7c66154eeeeb86f190347c5e07e7ccfd41b", size = 849912, upload-time = "2026-03-06T12:06:37.661Z" },
 ]
 
 [[package]]
 name = "jac-mcp"
-version = "0.1.2"
+version = "0.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jaclang" },
     { name = "mcp" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/23/e8/f70866874f21da6a6fc53a9d226fbd1eb418e69ef4860813f41f9820cdf6/jac_mcp-0.1.2.tar.gz", hash = "sha256:51e4a8fb1cfa74f2be3f123a8c630be36a9c38538b95e8c8ae1e30fee990542a", size = 380525, upload-time = "2026-02-28T16:30:28.093Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/67/13/0dc5008d4477d13d17e278d1ac0a03f38d5519191cb3c19187265fd87c31/jac_mcp-0.1.3.tar.gz", hash = "sha256:9d9db0b728239205f11b0a17d653806fd937dce0615e0f29217b218809b315dc", size = 399482, upload-time = "2026-03-06T12:07:50.05Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/c1/6aec4786ac14f9119022a816825fc2f442bf6ea95d8b89dc79305a3f8332/jac_mcp-0.1.2-py3-none-any.whl", hash = "sha256:7f2c4b248609b6e10ef99bafccc0fa0de1e67d4e6f09efc1ce4449930d372bf5", size = 428709, upload-time = "2026-02-28T16:30:26.594Z" },
+    { url = "https://files.pythonhosted.org/packages/09/35/243c4eef665856f315ee66fddad324b30ce5e1fc36ee3a2cf8f1b3e1fb9a/jac_mcp-0.1.3-py3-none-any.whl", hash = "sha256:df30a06d013f89664dbdb76b2f92400e013124a04efe049c193ea79e24e60b0b", size = 450028, upload-time = "2026-03-06T12:07:48.634Z" },
 ]
 
 [[package]]
@@ -676,23 +676,23 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "byllm", specifier = "==0.5.3" },
-    { name = "jac-client", specifier = "==0.3.3" },
-    { name = "jac-mcp", specifier = ">=0.1.2" },
-    { name = "jaclang", specifier = "==0.11.3" },
+    { name = "byllm", specifier = "==0.5.5" },
+    { name = "jac-client", specifier = "==0.3.4" },
+    { name = "jac-mcp", specifier = "==0.1.3" },
+    { name = "jaclang", specifier = "==0.12.0" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
 
 [[package]]
 name = "jaclang"
-version = "0.11.3"
+version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "llvmlite" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1d/89/8cc7f6784734ea3cd8cb69637fffde6fcda6825c14d47ebe43a1f8d1aec7/jaclang-0.11.3.tar.gz", hash = "sha256:b245fc8f6b2164044ef3e920c712ec575ba0c2dd29109583bda41d376d917b92", size = 7465761, upload-time = "2026-02-28T16:24:45.025Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a1/bd/352b8e191ab82a0ffe5b966415f4d54f4c878eba47c6c3cee79a9eb6255c/jaclang-0.12.0.tar.gz", hash = "sha256:db784ece0f06a91496303414c0c9b7ea1d01ba3c83c760cd1dec38ac502e3b26", size = 7815675, upload-time = "2026-03-06T12:01:11.108Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/c0/8114248a163eb45175af5461e9d1574f3d67f949188c62ec5c4379eade0f/jaclang-0.11.3-py3-none-any.whl", hash = "sha256:fa7aa71f19dd5cc0d5b1240790496c6e4017e829993444397e68275595ddabeb", size = 9708517, upload-time = "2026-02-28T16:24:42.067Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/50/259337b1dbafa1c9106e6efa584d621d7a22f1fbd7bc08ccb5861b9f29b5/jaclang-0.12.0-py3-none-any.whl", hash = "sha256:e4cc723bc68bbdf0065855610340910000c03c210e064bf52898da499fd01a16", size = 10059412, upload-time = "2026-03-06T12:01:08.198Z" },
 ]
 
 [[package]]
@@ -804,7 +804,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.82.0"
+version = "1.82.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -820,9 +820,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6c/00/49bb5c28e0dea0f5086229a2a08d5fdc6c8dc0d8e2acb2a2d1f7dd9f4b70/litellm-1.82.0.tar.gz", hash = "sha256:d388f52447daccbcaafa19a3e68d17b75f1374b5bf2cde680d65e1cd86e50d22", size = 16800355, upload-time = "2026-03-01T02:35:30.363Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/34/bd/6251e9a965ae2d7bc3342ae6c1a2d25dd265d354c502e63225451b135016/litellm-1.82.1.tar.gz", hash = "sha256:bc8427cdccc99e191e08e36fcd631c93b27328d1af789839eb3ac01a7d281890", size = 17197496, upload-time = "2026-03-10T09:10:04.438Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/28/89/eb28bfcf97d6b045c400e72eb047c381594467048c237dbb6c227764084c/litellm-1.82.0-py3-none-any.whl", hash = "sha256:5496b5d4532cccdc7a095c21cbac4042f7662021c57bc1d17be4e39838929e80", size = 14911978, upload-time = "2026-03-01T02:35:26.844Z" },
+    { url = "https://files.pythonhosted.org/packages/57/77/0c6eca2cb049793ddf8ce9cdcd5123a35666c4962514788c4fc90edf1d3b/litellm-1.82.1-py3-none-any.whl", hash = "sha256:a9ec3fe42eccb1611883caaf8b1bf33c9f4e12163f94c7d1004095b14c379eb2", size = 15341896, upload-time = "2026-03-10T09:10:00.702Z" },
 ]
 
 [[package]]
