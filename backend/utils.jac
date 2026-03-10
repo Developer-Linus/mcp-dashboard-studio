@@ -32,20 +32,14 @@ def extract_first_error(result: dict) -> str {
         return "";
     }
 
-    if "errors" not in result["data"]["result"] {
-        return "";
-    }
+    payload = result["data"]["result"];
 
-    errors = result["data"]["result"]["errors"];
+    if "errors" in payload and len(payload["errors"]) > 0 {
+        first_error = payload["errors"][0];
 
-    if len(errors) == 0 {
-        return "";
-    }
-
-    first_error = errors[0];
-
-    if "message" in first_error {
-        return first_error["message"];
+        if "message" in first_error {
+            return first_error["message"];
+        }
     }
 
     return "";

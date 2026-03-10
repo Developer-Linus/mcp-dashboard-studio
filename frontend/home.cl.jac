@@ -110,6 +110,7 @@ def:pub Home() -> JsxElement {
 
         try {
             spawn_result = await root spawn validate_code(code=code);
+            console.log(spawn_result);
             payload = get_first_report(spawn_result);
             response = payload;
 

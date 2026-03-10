@@ -72,4 +72,4 @@ cleanup() {
 
 trap cleanup EXIT
 
-jac start $APP_ENTRY
+jac start $APP_ENTRY --dev
