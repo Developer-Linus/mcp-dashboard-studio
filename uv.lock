@@ -652,14 +652,10 @@ wheels = [
 [[package]]
 name = "jac-mcp"
 version = "0.1.3"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/jaseci-labs/jaseci.git?subdirectory=jac-mcp#ea4cf6d8f41725ba4335a8341b4d1dd3eec289fc" }
 dependencies = [
     { name = "jaclang" },
     { name = "mcp" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/67/13/0dc5008d4477d13d17e278d1ac0a03f38d5519191cb3c19187265fd87c31/jac_mcp-0.1.3.tar.gz", hash = "sha256:9d9db0b728239205f11b0a17d653806fd937dce0615e0f29217b218809b315dc", size = 399482, upload-time = "2026-03-06T12:07:50.05Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/35/243c4eef665856f315ee66fddad324b30ce5e1fc36ee3a2cf8f1b3e1fb9a/jac_mcp-0.1.3-py3-none-any.whl", hash = "sha256:df30a06d013f89664dbdb76b2f92400e013124a04efe049c193ea79e24e60b0b", size = 450028, upload-time = "2026-03-06T12:07:48.634Z" },
 ]
 
 [[package]]
@@ -678,7 +674,7 @@ dependencies = [
 requires-dist = [
     { name = "byllm", specifier = "==0.5.5" },
     { name = "jac-client", specifier = "==0.3.4" },
-    { name = "jac-mcp", specifier = "==0.1.3" },
+    { name = "jac-mcp", git = "https://github.com/jaseci-labs/jaseci.git?subdirectory=jac-mcp" },
     { name = "jaclang", specifier = "==0.12.0" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]

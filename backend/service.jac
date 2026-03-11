@@ -1,101 +1,222 @@
 import requests;
+import json;
+import uuid;
 
-glob SSE_URL = "http://127.0.0.1:3001/sse";
-glob BASE_URL = "http://127.0.0.1:3001";
-glob MESSAGE_URL = "";
+# Streamable HTTP MCP endpoint exposed by `jac mcp --transport streamable-http`.
+# Use the canonical endpoint with trailing slash to avoid redirect ambiguity.
+glob MCP_URL = "http://127.0.0.1:3001/mcp/";
 
-def parse_sse_endpoint(raw_text: str) -> str {
-    lines = raw_text.split("\n");
+# The MCP server is session-oriented for streamable-http.
+# After a successful `initialize` request, the server returns an `mcp-session-id`
+# header that must be sent on subsequent requests.
+#
+# We cache it in memory so the backend does not re-initialize the session
+# for every single tool call.
+glob MCP_SESSION_ID: str | None = None;
 
-    for line in lines {
-        clean = line.strip();
 
-        if clean.startswith("data:") {
-            return clean.replace("data:", "").strip();
-        }
+"""
+Initialize an MCP session once and cache the returned session ID.
+
+Why this exists:
+- Streamable HTTP in this server is stateful.
+- Tool calls without `Mcp-Session-Id` fail with "Missing session ID".
+- The correct lifecycle is:
+    1. initialize
+    2. store session ID
+    3. send tools/call requests with that session ID
+
+Why we do lazy initialization:
+- The service may be imported before the MCP server is running.
+- Initializing only when the first tool call happens avoids startup fragility.
+"""
+def _initialize_mcp_session() -> str {
+    global MCP_SESSION_ID;
+
+    # Reuse the existing session if we already initialized successfully.
+    if MCP_SESSION_ID is not None {
+        return MCP_SESSION_ID;
     }
 
-    return "";
+    # Every JSON-RPC request should have its own unique ID.
+    # This becomes important when debugging concurrent or interleaved requests.
+    payload = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": "initialize",
+        "params": {
+            # This should match the protocol version expected by the server.
+            "protocolVersion": "2025-03-26",
+            # Client capabilities can be expanded later if needed.
+            # For now, we keep them minimal because this service only needs
+            # tool invocation and standard MCP session behavior.
+            "capabilities": {},
+            # Client metadata is useful for debugging server logs and future tracing.
+            "clientInfo": {"name": "jac-playground", "version": "0.1.0"}
+        }
+    };
+
+    resp = requests.post(
+        MCP_URL,
+        json=payload,
+        timeout=20,
+        headers={
+            # For streamable-http, the client should be ready to accept either:
+            # - standard JSON
+            # - SSE/event-stream
+            #
+            # Even if the current server returns JSON for these requests,
+            # advertising support for both keeps the client aligned with the transport.
+            "Accept": "application/json, text/event-stream",
+            "Content-Type": "application/json",
+
+        }
+    );
+
+    # Initialization failure is a hard failure.
+    # Without a valid session, no tool call can succeed.
+    if resp.status_code >= 400 {
+        raise Exception(f"Failed to initialize MCP session: {resp.text}") ;
+    }
+
+    # The server communicates session state via response headers, not JSON body.
+    session_id = resp.headers.get("mcp-session-id");
+    if not session_id {
+        raise Exception("MCP server did not return mcp-session-id") ;
+    }
+
+    MCP_SESSION_ID = session_id;
+    return MCP_SESSION_ID;
 }
 
-def ensure_sse_session() -> dict {
-    if MESSAGE_URL != "" {
-        return {"ok": True, "message_url": MESSAGE_URL, "error": {}};
+
+"""
+Extract and normalize the actual tool result from the MCP JSON-RPC envelope.
+
+Important observation from jac-mcp:
+- The server does NOT return tool output directly as:
+    {"result": {"valid": true, ...}}
+
+- Instead it returns a content envelope like:
+    {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{ ...json string... }"
+          }
+        ],
+        "isError": false
+      }
     }
 
-    try {
-        resp = requests.get(SSE_URL, stream=True, timeout=10);
-
-        if resp.status_code >= 400 {
-            return {
-                "ok": False,
-                "message_url": "",
-                "error": {
-                    "message": f"SSE bootstrap failed with HTTP {resp.status_code}"
-                }
-            };
-        }
-
-        raw_text = "";
-
-        for chunk in resp.iter_lines(decode_unicode=True) {
-            if chunk is None {
-                continue;
-            }
-
-            raw_text = raw_text + chunk + "\n";
-
-            if "event: endpoint" in raw_text and "data:" in raw_text {
-                break;
-            }
-        }
-
-        endpoint = parse_sse_endpoint(raw_text);
-
-        if endpoint == "" {
-            return {
-                "ok": False,
-                "message_url": "",
-                "error": {"message": "Could not extract SSE message endpoint."}
-            };
-        }
-
-        if endpoint.startswith("http://") or endpoint.startswith("https://") {
-            MESSAGE_URL = endpoint;
-        } else {
-            MESSAGE_URL = BASE_URL + endpoint;
-        }
-
-        return {"ok": True, "message_url": MESSAGE_URL, "error": {}};
-    } except Exception as e {
-        return {"ok": False, "message_url": "", "error": {"message": str(e)}};
+So we must:
+1. inspect `result`
+2. read the first content item
+3. take its `text`
+4. attempt to parse that text as JSON
+"""
+def _extract_tool_result(body: dict) -> dict {
+    # Standard JSON-RPC error at protocol level.
+    # This means the tool call failed before we got a normal result envelope.
+    if "error" in body {
+        return {"ok": False, "data": {}, "error": body["error"]};
     }
-}
 
-def call_mcp_tool(tool_name: str, args: dict) -> dict {
-    session_result = ensure_sse_session();
+    result = body.get("result", {});
+    is_error = result.get("isError", False);
+    content = result.get("content", []);
 
-    if not session_result["ok"] {
+    # If the server returns a result envelope without content,
+    # fall back to returning the raw result so the caller still has
+    # something useful for debugging.
+    if not content {
         return {
-            "ok": False,
-            "tool": tool_name,
-            "data": {},
-            "error": session_result["error"]
+            "ok": not is_error,
+            "data": result,
+            "error": {} if not is_error else {"message": "Tool returned no content"}
         };
     }
 
+    # jac-mcp currently returns text content, and that text itself may be JSON.
+    first_item = content[0];
+    text_value = first_item.get("text", "");
+
     try {
+        # Best case:
+        # the tool returned structured JSON serialized as a string.
+        # Example:
+        #   {"valid": true, "errors": [], "warnings": []}
+        parsed_data = json.loads(text_value);
+    } except Exception {
+        # Fallback:
+        # not every tool is guaranteed to return JSON text.
+        # Some tools may return explanatory prose, formatted source code,
+        # or mixed human-readable output.
+        parsed_data = {"raw_text": text_value};
+    }
+
+    return {
+        "ok": not is_error,
+        "data": parsed_data,
+        "error": {} if not is_error else {"message": "Tool returned error output"}
+    };
+}
+
+
+"""
+Call an MCP tool through the streamable-http transport.
+
+Design goals:
+- initialize once, then reuse the session
+- hide MCP protocol details from the rest of the app
+- always return one stable application-level response shape:
+    {
+      "ok": bool,
+      "tool": str,
+      "data": dict,
+      "error": dict
+    }
+
+Why this wrapper matters:
+- The frontend and API layer should not need to know about JSON-RPC,
+  session IDs, or MCP content envelopes.
+- This function acts as the protocol boundary.
+"""
+def call_mcp_tool(tool_name: str, args: dict) -> dict {
+    try {
+        session_id = _initialize_mcp_session();
+
         payload = {
             "jsonrpc": "2.0",
-            "id": 1,
+            "id": str(uuid.uuid4()),
             "method": "tools/call",
             "params": {"name": tool_name, "arguments": args}
         };
 
-        resp = requests.post(session_result["message_url"], json=payload, timeout=10);
-        body = resp.json();
+        resp = requests.post(
+            MCP_URL,
+            json=payload,
+            timeout=20,
+            headers={
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+                # This is mandatory after initialization for this server.
+                "Mcp-Session-Id": session_id,
 
+            }
+        );
+
+        # Transport / HTTP failure.
+        # We still try to decode JSON because MCP servers often return structured
+        # error bodies even when the HTTP status is non-2xx.
         if resp.status_code >= 400 {
+            try {
+                body = resp.json();
+            } except Exception {
+                body = {"message": resp.text};
+            }
+
             return {
                 "ok": False,
                 "tool": tool_name,
@@ -107,17 +228,22 @@ def call_mcp_tool(tool_name: str, args: dict) -> dict {
             };
         }
 
-        if "error" in body {
-            return {
-                "ok": False,
-                "tool": tool_name,
-                "data": {},
-                "error": body["error"]
-            };
-        }
+        # For the currently observed jac-mcp response shape, application/json is returned.
+        # If the server later returns SSE for some cases, this function is where that
+        # support should be added cleanly.
+        body = resp.json();
+        extracted = _extract_tool_result(body);
 
-        return {"ok": True, "tool": tool_name, "data": body, "error": {}};
+        return {
+            "ok": extracted["ok"],
+            "tool": tool_name,
+            "data": extracted["data"],
+            "error": extracted["error"]
+        };
     } except Exception as e {
+        # This is the outermost safety net.
+        # We keep the returned shape stable so callers do not have to wrap this
+        # function again just to handle exceptions.
         return {
             "ok": False,
             "tool": tool_name,
@@ -127,14 +253,46 @@ def call_mcp_tool(tool_name: str, args: dict) -> dict {
     }
 }
 
+
+"""
+Validate Jac code using the full compiler/type-check pipeline.
+
+Expected success data shape:
+{
+  "valid": true,
+  "errors": [],
+  "warnings": []
+}
+"""
 def validate_code_service(code: str) -> dict {
     return call_mcp_tool("validate_jac", {"code": code});
 }
 
+
+"""
+Format Jac code according to the server's formatter.
+
+Typical success data shape:
+{
+  "formatted": "...",
+  "changed": true
+}
+"""
 def format_code_service(code: str) -> dict {
     return call_mcp_tool("format_jac", {"code": code});
 }
 
+
+"""
+Explain a Jac compiler/runtime error in a more user-friendly way.
+
+Typical success data shape may include:
+- title
+- explanation
+- suggestion
+- example
+- docs_uri
+"""
 def explain_code_error_service(error_message: str) -> dict {
     return call_mcp_tool("explain_error", {"error_message": error_message});
 }

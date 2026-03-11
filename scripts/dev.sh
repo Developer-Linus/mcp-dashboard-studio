@@ -4,7 +4,7 @@ set -e
 
 APP_ENTRY="main.jac"
 MCP_PORT=3001
-TRANSPORT="sse"
+TRANSPORT="streamable-http"
 
 echo ""
 echo "=============================================="

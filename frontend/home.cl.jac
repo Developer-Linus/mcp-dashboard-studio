@@ -3,14 +3,45 @@ sv import from ..backend.api { validate_code, format_code, explain_code_error }
 
 
 def get_first_report(spawn_result: any) -> dict {
-    if spawn_result.reports and spawn_result.reports.length > 0 {
-        return spawn_result.reports[0];
+    console.log("Raw spawn result:", spawn_result);
+
+    if spawn_result == None {
+        return {
+            "ok": False,
+            "tool": "unknown",
+            "data": {},
+            "error": {"message": "Spawn returned no result."}
+        };
     }
 
+    # Prefer attribute-style access first since walker spawn results commonly
+    # expose reports that way in the frontend runtime.
+    if spawn_result.reports {
+        reports = spawn_result.reports;
+        if len(reports) > 0 {
+            return reports[0];
+        }
+    }
+
+    # Fallback for object/dict-like access in case the runtime shape differs.
+    if "reports" in spawn_result {
+        reports = spawn_result["reports"];
+        if reports and len(reports) > 0 {
+            return reports[0];
+        }
+    }
+
+    # Some runtimes may expose a single report instead of a reports array.
+    if "report" in spawn_result {
+        return spawn_result["report"];
+    }
+
+    # Preserve the raw spawn result in the response payload so the output panel
+    # shows exactly what came back from the backend.
     return {
         "ok": False,
         "tool": "unknown",
-        "data": {},
+        "data": {"raw_spawn_result": spawn_result},
         "error": {"message": "No report returned from backend."}
     };
 }
@@ -29,17 +60,11 @@ def extract_first_validation_error(payload: dict) -> str {
 
     data = payload["data"];
 
-    if "result" not in data {
+    if "errors" not in data {
         return "";
     }
 
-    result = data["result"];
-
-    if "errors" not in result {
-        return "";
-    }
-
-    errors = result["errors"];
+    errors = data["errors"];
 
     if len(errors) == 0 {
         return "";
@@ -65,14 +90,8 @@ def extract_formatted_code(payload: dict) -> str {
 
     data = payload["data"];
 
-    if "result" not in data {
-        return "";
-    }
-
-    result = data["result"];
-
-    if "formatted" in result {
-        return result["formatted"];
+    if "formatted" in data {
+        return data["formatted"];
     }
 
     return "";
@@ -110,7 +129,6 @@ def:pub Home() -> JsxElement {
 
         try {
             spawn_result = await root spawn validate_code(code=code);
-            console.log(spawn_result);
             payload = get_first_report(spawn_result);
             response = payload;
 
@@ -173,13 +191,20 @@ def:pub Home() -> JsxElement {
     }
 
     async def run_explain() -> None {
+        target_error = explain_target.strip();
+
+        if target_error == "" {
+            error_text = "No validation error available to explain.";
+            notice = "Run validation first to get an error explanation target.";
+            return;
+        }
+
         loading = True;
         active_action = "explain";
         error_text = "";
         notice = "Explaining compiler error...";
 
         try {
-            target_error = explain_target.strip();
             spawn_result = await root spawn explain_code_error(
                 error_message=target_error
             );

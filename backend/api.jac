@@ -8,42 +8,48 @@ import from .utils { empty_code_response, empty_error_message_response }
 
 walker:pub validate_code {
     has code: str;
+    has output: dict = {};
 
-    can handle with root entry {
+    can handle with Root entry {
         if self.code.strip() == "" {
-            report empty_code_response("validate_jac");
+            self.output = empty_code_response("validate_jac");
+            report self.output;
             disengage;
         }
 
-        result = validate_code_service(self.code);
-        report result;
+        self.output = validate_code_service(self.code);
+        report self.output;
     }
 }
 
 walker:pub format_code {
     has code: str;
+    has output: dict = {};
 
-    can handle with root entry {
+    can handle with Root entry {
         if self.code.strip() == "" {
-            report empty_code_response("format_jac");
+            self.output = empty_code_response("format_jac");
+            report self.output;
             disengage;
         }
 
-        result = format_code_service(self.code);
-        report result;
+        self.output = format_code_service(self.code);
+        report self.output;
     }
 }
 
 walker:pub explain_code_error {
     has error_message: str;
+    has output: dict = {};
 
-    can handle with root entry {
+    can handle with Root entry {
         if self.error_message.strip() == "" {
-            report empty_error_message_response();
+            self.output = empty_error_message_response();
+            report self.output;
             disengage;
         }
 
-        result = explain_code_error_service(self.error_message);
-        report result;
+        self.output = explain_code_error_service(self.error_message);
+        report self.output;
     }
 }

@@ -17,6 +17,7 @@ def empty_error_message_response() -> dict {
 }
 
 def extract_first_error(result: dict) -> str {
+    # If the service call itself failed, prefer the top-level error message.
     if not result["ok"] {
         if "error" in result and "message" in result["error"] {
             return result["error"]["message"];
@@ -24,16 +25,15 @@ def extract_first_error(result: dict) -> str {
         return "";
     }
 
+    # Successful service response should place the normalized tool payload
+    # directly under `data`.
     if "data" not in result {
         return "";
     }
 
-    if "result" not in result["data"] {
-        return "";
-    }
+    payload = result["data"];
 
-    payload = result["data"]["result"];
-
+    # For validate_jac, compiler errors are expected under `errors`.
     if "errors" in payload and len(payload["errors"]) > 0 {
         first_error = payload["errors"][0];
 
