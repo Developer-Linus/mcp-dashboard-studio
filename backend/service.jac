@@ -16,6 +16,36 @@ glob MCP_SESSION_ID: str | None = None;
 
 
 """
+Send a JSON-RPC request to the MCP endpoint with optional session header.
+
+Why this exists:
+- It centralizes request headers and timeout behavior.
+- It avoids duplicating the same `requests.post(...)` logic.
+- It makes the initialize / initialized / tools/call lifecycle clearer.
+"""
+def _post_json(payload: dict, session_id: str | None = None) -> any {
+    headers = {
+        # For streamable-http, the client should be ready to accept either:
+        # - standard JSON
+        # - SSE/event-stream
+        #
+        # Even if the current server returns JSON for these requests,
+        # advertising support for both keeps the client aligned with the transport.
+        "Accept": "application/json, text/event-stream",
+        "Content-Type": "application/json",
+
+    };
+
+    if session_id is not None {
+        # This is mandatory after initialization for this server.
+        headers["Mcp-Session-Id"] = session_id;
+    }
+
+    return requests.post(MCP_URL, json=payload, timeout=20, headers=headers);
+}
+
+
+"""
 Initialize an MCP session once and cache the returned session ID.
 
 Why this exists:
@@ -56,22 +86,7 @@ def _initialize_mcp_session() -> str {
         }
     };
 
-    resp = requests.post(
-        MCP_URL,
-        json=payload,
-        timeout=20,
-        headers={
-            # For streamable-http, the client should be ready to accept either:
-            # - standard JSON
-            # - SSE/event-stream
-            #
-            # Even if the current server returns JSON for these requests,
-            # advertising support for both keeps the client aligned with the transport.
-            "Accept": "application/json, text/event-stream",
-            "Content-Type": "application/json",
-
-        }
-    );
+    resp = _post_json(payload);
 
     # Initialization failure is a hard failure.
     # Without a valid session, no tool call can succeed.
@@ -83,6 +98,23 @@ def _initialize_mcp_session() -> str {
     session_id = resp.headers.get("mcp-session-id");
     if not session_id {
         raise Exception("MCP server did not return mcp-session-id") ;
+    }
+
+    # Some MCP servers require the standard initialized notification after
+    # the initialize handshake completes. Without this, later tool calls may
+    # be rejected even if a session ID was returned successfully.
+    initialized_payload = {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized",
+        "params": {}
+    };
+
+    initialized_resp = _post_json(initialized_payload, session_id=session_id);
+
+    if initialized_resp.status_code >= 400 {
+        raise Exception(
+            f"Failed to send MCP initialized notification: {initialized_resp.text}"
+        ) ;
     }
 
     MCP_SESSION_ID = session_id;
@@ -183,63 +215,90 @@ Why this wrapper matters:
   session IDs, or MCP content envelopes.
 - This function acts as the protocol boundary.
 """
-def call_mcp_tool(tool_name: str, args: dict) -> dict {
-    try {
-        session_id = _initialize_mcp_session();
+def _call_mcp_tool_once(tool_name: str, args: dict, session_id: str) -> dict {
+    payload = {
+        "jsonrpc": "2.0",
+        "id": str(uuid.uuid4()),
+        "method": "tools/call",
+        "params": {"name": tool_name, "arguments": args}
+    };
 
-        payload = {
-            "jsonrpc": "2.0",
-            "id": str(uuid.uuid4()),
-            "method": "tools/call",
-            "params": {"name": tool_name, "arguments": args}
-        };
+    resp = _post_json(payload, session_id=session_id);
 
-        resp = requests.post(
-            MCP_URL,
-            json=payload,
-            timeout=20,
-            headers={
-                "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json",
-                # This is mandatory after initialization for this server.
-                "Mcp-Session-Id": session_id,
-
-            }
-        );
-
-        # Transport / HTTP failure.
-        # We still try to decode JSON because MCP servers often return structured
-        # error bodies even when the HTTP status is non-2xx.
-        if resp.status_code >= 400 {
-            try {
-                body = resp.json();
-            } except Exception {
-                body = {"message": resp.text};
-            }
-
-            return {
-                "ok": False,
-                "tool": tool_name,
-                "data": {},
-                "error": {
-                    "message": f"MCP HTTP error {resp.status_code}",
-                    "details": body
-                }
-            };
+    # Transport / HTTP failure.
+    # We still try to decode JSON because MCP servers often return structured
+    # error bodies even when the HTTP status is non-2xx.
+    if resp.status_code >= 400 {
+        try {
+            body = resp.json();
+        } except Exception {
+            body = {"message": resp.text};
         }
 
-        # For the currently observed jac-mcp response shape, application/json is returned.
-        # If the server later returns SSE for some cases, this function is where that
-        # support should be added cleanly.
-        body = resp.json();
-        extracted = _extract_tool_result(body);
-
         return {
-            "ok": extracted["ok"],
+            "ok": False,
             "tool": tool_name,
-            "data": extracted["data"],
-            "error": extracted["error"]
+            "data": {},
+            "error": {"message": f"MCP HTTP error {resp.status_code}", "details": body},
+            "status_code": resp.status_code
         };
+    }
+
+    # For the currently observed jac-mcp response shape, application/json is returned.
+    # If the server later returns SSE for some cases, this function is where that
+    # support should be added cleanly.
+    body = resp.json();
+    extracted = _extract_tool_result(body);
+
+    return {
+        "ok": extracted["ok"],
+        "tool": tool_name,
+        "data": extracted["data"],
+        "error": extracted["error"],
+        "status_code": resp.status_code
+    };
+}
+
+
+"""
+Call an MCP tool through the streamable-http transport.
+
+Design goals:
+- initialize once, then reuse the session
+- hide MCP protocol details from the rest of the app
+- always return one stable application-level response shape:
+    {
+      "ok": bool,
+      "tool": str,
+      "data": dict,
+      "error": dict
+    }
+
+Why this wrapper matters:
+- The frontend and API layer should not need to know about JSON-RPC,
+  session IDs, or MCP content envelopes.
+- This function acts as the protocol boundary.
+"""
+def call_mcp_tool(tool_name: str, args: dict) -> dict {
+    global MCP_SESSION_ID;
+
+    try {
+        session_id = _initialize_mcp_session();
+        result = _call_mcp_tool_once(tool_name, args, session_id);
+
+        # If the cached session became stale, clear it, reinitialize,
+        # and retry exactly once.
+        if "status_code" in result and result["status_code"] == 401 {
+            MCP_SESSION_ID = None;
+            session_id = _initialize_mcp_session();
+            result = _call_mcp_tool_once(tool_name, args, session_id);
+        }
+
+        if "status_code" in result {
+            del result["status_code"];
+        }
+
+        return result;
     } except Exception as e {
         # This is the outermost safety net.
         # We keep the returned shape stable so callers do not have to wrap this

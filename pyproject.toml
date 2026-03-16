@@ -5,12 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "byllm==0.5.5",
-    "jac-client==0.3.4",
-    "jac-mcp",
-    "jaclang==0.12.0",
+    "byllm==0.5.7",
+    "jac-client==0.3.6",
+    "jac-mcp==0.1.5",
+    "jaclang==0.12.2",
     "watchdog>=6.0.0",
 ]
-
-[tool.uv.sources]
-jac-mcp = { git = "https://github.com/jaseci-labs/jaseci.git", subdirectory = "jac-mcp" }
