@@ -355,3 +355,92 @@ Typical success data shape may include:
 def explain_code_error_service(error_message: str) -> dict {
     return call_mcp_tool("explain_error", {"error_message": error_message});
 }
+
+
+"""
+Check Jac code for syntax errors using the lightweight syntax checker.
+
+Expected success data shape:
+{
+  "valid": true,
+  "errors": []
+}
+"""
+def check_syntax_service(code: str) -> dict {
+    return call_mcp_tool("check_syntax", {"code": code});
+}
+
+
+"""
+Translate Python source code to equivalent Jac code.
+
+Expected success data shape:
+{
+  "jac_code": "...",
+  "notes": "..."
+}
+"""
+def py_to_jac_service(python_code: str) -> dict {
+    return call_mcp_tool("py_to_jac", {"python_code": python_code});
+}
+
+
+"""
+List available Jac example files, optionally filtered by category.
+
+Expected success data shape:
+{
+  "examples": [{"name": "...", "category": "...", "description": "..."}, ...]
+}
+"""
+def list_examples_service(category: str | None = None) -> dict {
+    args: dict = {};
+    if category is not None {
+        args["category"] = category;
+    }
+    return call_mcp_tool("list_examples", args);
+}
+
+
+"""
+Retrieve the source code of a named Jac example.
+
+Expected success data shape:
+{
+  "content": "...",
+  "name": "..."
+}
+"""
+def get_example_service(name: str) -> dict {
+    return call_mcp_tool("get_example", {"name": name});
+}
+
+
+"""
+Search the Jac documentation for a query string.
+
+Expected success data shape:
+{
+  "results": [{"title": "...", "snippet": "...", "uri": "..."}, ...]
+}
+"""
+def search_docs_service(query: str, limit: int | None = None) -> dict {
+    args: dict = {"query": query};
+    if limit is not None {
+        args["limit"] = limit;
+    }
+    return call_mcp_tool("search_docs", args);
+}
+
+
+"""
+Generate the AST for Jac code in either tree or JSON format.
+
+Expected success data shape (tree):
+{
+  "ast": "..."
+}
+"""
+def get_ast_service(code: str, format: str = "tree") -> dict {
+    return call_mcp_tool("get_ast", {"code": code, "format": format});
+}

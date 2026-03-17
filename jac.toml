@@ -19,7 +19,7 @@ expose_pitfalls = true
 enable_validate = true
 enable_format = true
 enable_py2jac = true
-enable_ast = false
+enable_ast = true
 project_root = "."
 
 [dependencies.npm]

@@ -16,6 +16,24 @@ def empty_error_message_response() -> dict {
     };
 }
 
+def empty_python_code_response() -> dict {
+    return {
+        "ok": False,
+        "tool": "py_to_jac",
+        "data": {},
+        "error": {"message": "Python code input cannot be empty."}
+    };
+}
+
+def empty_query_response() -> dict {
+    return {
+        "ok": False,
+        "tool": "search_docs",
+        "data": {},
+        "error": {"message": "Search query cannot be empty."}
+    };
+}
+
 def extract_first_error(result: dict) -> str {
     # If the service call itself failed, prefer the top-level error message.
     if not result["ok"] {
@@ -44,3 +62,5 @@ def extract_first_error(result: dict) -> str {
 
     return "";
 }
+
+
