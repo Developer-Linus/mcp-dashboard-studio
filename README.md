@@ -1,560 +1,72 @@
 # Jac MCP Playground
 
-A focused developer tool for **validating, formatting, and explaining Jac code** using the **Jac Model Context Protocol (MCP) server**.
+A focused developer utility that exercises MCP compiler tooling through a Jac-only frontend/back-end stack. The application orchestrates walkers that call MCP tools over the streamable-http transport while keeping the UI unaware of underlying JSON-RPC mechanics—ideal for engineering teams evaluating Jac tooling quality and integrations.
 
-This project demonstrates how a **Jac full-stack application** can interact with the **jac-mcp server** to provide compiler assistance capabilities inside a simple developer UI.
+## Capabilities
 
-The application provides three core capabilities:
+- **Jac validation** via `validate_jac` to enforce full type checking, declarations, and macros.
+- **Code formatting** through `format_jac`, which replaces the editor contents with the normalized output.
+- **Error explanation** via `explain_error` to translate compiler diagnostics into actionable guidance.
+- **Syntax checking** with `check_syntax` for a quick parse-only pass.
+- **Python-to-Jac conversion** using `py_to_jac` to demonstrate cross-language translation.
+- **AST generation** using `get_ast` (tree output) for structural insight.
 
-* **Validate Jac code**
-* **Format Jac code**
-* **Explain compiler errors**
+## Architecture
 
-The system is implemented using a **pure Jac stack architecture**, with no external application frameworks such as Node.js or FastAPI.
+1. **Frontend (`frontend/home.cl.jac`)** – Jac JSX interface with editor, response pane, Python converter, and action buttons. It spawns walkers and renders normalized reports/AST outputs.
+2. **Walkers (`main.jac`)** – Each walker performs minimal validation, delegates to a backend service, and reports results for the UI.
+3. **Service layer (`backend/service.jac`)** – Manages streamable-http session lifecycle, wraps MCP tool calls (`validate_code_service`, `format_code_service`, etc.), and flattens the JSON-RPC content envelope into a consistent response shape.
+4. **Utilities (`backend/utils.jac`)** – Common helpers to fabricate empty-input responses and extract the first compiler error message for UI hints.
 
----
+## System Architecture & Design
 
-# Overview
+- **Three-layer separation** keeps UI, API walkers, and MCP access decoupled. The frontend only spawns walkers; all tool invocation logic lives in backend services, preserving transport isolation.
+- **Streamable HTTP transport** is handled centrally in `backend/service.jac`, covering MCP session init, `tools/call`, retry on 401, and JSON parsing of the result envelope.
+- **Normalized response shape** (`{ok, tool, data, error}`) ensures all UI paths can handle success/failure uniformly without bespoke parsing per tool.
+- **Utility helpers** provide consistent empty-input guards and error extraction so UI notices remain meaningful even when MCP responses are incomplete.
 
-Jac MCP Playground provides a minimal but practical environment for interacting with the Jac compiler through MCP tools.
-
-Users can:
-
-1. Paste or write Jac code
-2. Run validation against the compiler
-3. Automatically format code
-4. Receive explanations for compiler errors
-
-The system acts as a **thin orchestration layer** between a frontend UI and the MCP tool server.
-
----
-
-# System Architecture
-
-The system follows a **three-layer architecture**.
-
-```
-Frontend UI
-      │
-      │ spawn walkers
-      ▼
-Backend API walkers
-      │
-      │ call services
-      ▼
-MCP Service Layer
-      │
-      │ JSON-RPC
-      ▼
-jac-mcp Server
-      │
-      ▼
-Jac Compiler Toolchain
-```
-
----
-
-## Architecture Layers
-
-### 1. Frontend Layer
-
-Implemented using **Jac client components**.
-
-Responsibilities:
-
-* Display code editor
-* Provide developer actions
-* Display results and errors
-* Spawn backend walkers
-
-Location:
-
-```
-frontend/home.cl.jac
-```
-
-The frontend **does not directly communicate with MCP**.
-
-Instead it spawns backend walkers.
-
-Example flow:
-
-```
-UI action
-    ↓
-spawn validate_code walker
-```
-
----
-
-### 2. Backend API Layer
-
-Implemented using **Jac walkers as API endpoints**.
-
-Responsibilities:
-
-* Validate inputs
-* Call service layer
-* Return structured reports
-
-Location:
-
-```
-backend/api.jac
-```
-
-Example walker:
-
-```
-validate_code
-format_code
-explain_code_error
-```
-
-Each walker:
-
-1. receives input
-2. calls service
-3. reports normalized response
-
----
-
-### 3. Service Layer
-
-Responsible for **communication with the MCP server**.
-
-Location:
-
-```
-backend/service.jac
-```
-
-Responsibilities:
-
-* bootstrap SSE session
-* send JSON-RPC tool calls
-* normalize MCP responses
-* return consistent data structure
-
-Service functions:
-
-```
-validate_code_service
-format_code_service
-explain_code_error_service
-```
-
-These functions internally call:
-
-```
-call_mcp_tool()
-```
-
----
-
-### 4. MCP Server
-
-External system.
-
-Started using:
-
-```
-jac mcp
-```
-
-Responsibilities:
-
-* expose compiler tools
-* validate Jac code
-* format Jac code
-* explain errors
-
-Tools used:
-
-```
-validate_jac
-format_jac
-explain_error
-```
-
----
-
-# Transport Design
-
-## Intended Transport
-
-```
-streamable-http
-```
-
-The application was originally designed to communicate with MCP through the **streamable HTTP transport**, which exposes a single endpoint:
-
-```
-POST /mcp
-```
-
-However, a runtime issue currently prevents the transport from starting:
-
-```
-StreamableHTTPServerTransport.__init__()
-unexpected keyword argument 'mcp_endpoint'
-```
-
----
-
-## Temporary Transport
-
-Because of this issue, the project temporarily uses:
-
-```
-SSE transport
-```
-
-SSE transport works through two endpoints:
-
-```
-GET  /sse
-POST /messages/?session_id=...
-```
-
-Flow:
-
-```
-1. connect to /sse
-2. read endpoint event
-3. extract message endpoint
-4. POST tool calls to message endpoint
-```
-
-This logic is implemented in:
-
-```
-backend/service.jac
-```
-
----
-
-# Design Principles
-
-This project intentionally follows several design principles.
-
----
-
-## 1. Pure Jac Stack
-
-The system avoids external backend frameworks.
-
-
-All backend logic is implemented using:
-
-```
-Jac walkers
-Jac modules
-Jac service functions
-```
-
----
-
-## 2. Transport Isolation
-
-Transport details are isolated in:
-
-```
-backend/service.jac
-```
-
-This ensures:
-
 ```
-frontend
-api walkers
+Frontend UI (home.cl.jac)
+        │
+        ▼
+   Walkers (main.jac)
+        │
+        ▼
+Service layer (backend/service.jac)
+        │
+        ▼
+   MCP Server (jac-mcp)
 ```
-
-remain independent from MCP transport changes.
-
-When `streamable-http` becomes available again, only the service layer must change.
-
----
-
-## 3. Stable Response Contract
-
-All service responses follow a normalized format:
-
-```
-{
-  "ok": bool,
-  "tool": str,
-  "data": dict,
-  "error": dict
-}
-```
-
-Benefits:
-
-* predictable frontend behavior
-* simplified error handling
-* stable API surface
-
----
-
-## 4. Thin Frontend
-
-Frontend responsibilities are intentionally minimal.
-
-The frontend only:
-
-```
-spawn walker
-display result
-```
-
-It does not know about:
-
-```
-MCP
-JSON-RPC
-transport
-compiler tools
-```
-
----
-
-# Project Structure
-
-```
-.
-├── README.md
-├── __init__.jac
-│
-├── backend
-│   ├── __init__.jac
-│   ├── api.jac
-│   ├── service.jac
-│   ├── types.jac
-│   └── utils.jac
-│
-├── frontend
-│   └── home.cl.jac
-│
-├── jac.toml
-├── main.jac
-├── pyproject.toml
-│
-├── scripts
-│   └── dev.sh
-│
-├── styles.css
-└── uv.lock
-```
-
----
-
-## backend/
-
-Contains all backend application logic.
-
-### api.jac
-
-Defines walker endpoints.
-
-Examples:
-
-```
-validate_code
-format_code
-explain_code_error
-```
-
----
-
-### service.jac
-
-Handles MCP communication.
-
-Responsibilities:
-
-```
-SSE session bootstrap
-JSON-RPC tool invocation
-response normalization
-```
-
----
-
-### utils.jac
-
-Helper utilities used across backend modules.
-
----
-
----
-
-## frontend/
-
-Contains the client UI.
-
-### home.cl.jac
-
-Main user interface.
-
-Features:
-
-* Jac editor
-* validation button
-* format button
-* explain error button
-* result panel
-* error inspector
-
----
-
-## scripts/
-
-Contains development tooling.
-
-### dev.sh
-
-Starts both:
-
-```
-jac-mcp server
-Jac full-stack app
-```
-
-Usage:
-
-```
-./scripts/dev.sh
-```
-
----
-
-## main.jac
-
-Application entry point.
-
-Defines:
-
-```
-client app routing
-```
-
----
-
-## jac.toml
-
-Project configuration.
-
-Includes:
-
-* client plugin configuration
-* tailwind integration
-* MCP configuration
-
----
-
-# Development Workflow
-
-## Start Development Environment
-
-```
-./scripts/dev.sh
-```
-
-This script:
-
-1. activates `.venv`
-2. starts MCP server
-3. starts Jac application
-
----
-
-## Manual Startup
-
-Start MCP:
-
-```
-jac mcp --transport sse --port 3001
-```
-
-Start app:
-
-```
-jac start main.jac
-```
-
----
-
-# Example Workflow
-
-1. User writes Jac code
-
-```
-node Farm {
-    has name: str;
-}
-```
-
-1. Click **Validate**
-
-2. Walker executes:
-
-```
-validate_code
-```
-
-1. Service calls MCP:
-
-```
-validate_jac
-```
-
-1. Result returned to UI
-
----
-
-# Future Improvements
-
-## Streamable HTTP Support
-
-When MCP transport issue is resolved:
-
-* remove SSE bootstrap logic
-* replace with `/mcp` endpoint calls
-
----
-
-## Syntax Highlighting
-
-Integrate a proper Jac syntax editor.
-
----
-
-## Example Snippets
-
-Provide sample Jac programs.
 
----
+## Running the Playground
 
-## Multi-file Validation
+### Prerequisites
 
-Allow validating entire Jac projects instead of single snippets.
+- Jac compiler with the `jac-mcp` plugin installed in `.venv` (verify via `jac --version`).
+- Port 3001 available for the MCP server.
 
----
+### Startup
 
-# Why This Project Matters
+1. Activate the virtual environment: `source .venv/bin/activate` (create with `python -m venv .venv` if absent).
+2. Launch both services with `./scripts/dev.sh`, which:
+   - Frees port 3001 if in use.
+   - Starts `jac mcp --transport streamable-http --port 3001`.
+   - Runs `jac start main.jac --dev` for the full-stack app.
+3. Open the provided browser URL, input Jac or Python code, and interact with the buttons—each action spawns a walker and displays the MCP response.
 
-This project demonstrates how Jac can be used to build:
+## Known Issues
 
-* developer tooling
-* language services
-* compiler assistants
-* graph-native full-stack systems
+- `validate_jac` and `check_syntax` currently report `ok: true` even for invalid Jac snippets on the MCP server, so the UI can’t automatically reject bad code until the server is fixed.
+- `py_to_jac` responses omit a populated `jac_code` field, meaning conversions never appear in the Python converter panel.
+- `list_examples` returns an empty list, so example fetching is unavailable.
+- The service layer now assumes the streamable-http transport (the previous SSE code paths are inactive).
 
-using **only the Jac ecosystem**.
+## Next Steps
 
----
+1. Coordinate with the MCP toolchain owners so invalid inputs yield `valid: false` responses and Python conversions include actual Jac output.
+2. Add UI detection for anomalous responses (e.g., `ok: true` with compiler errors or empty translation data) so practitioners see warnings instead of trusting faulty feedback.
+3. Expand the frontend with sample snippets, syntax highlighting, and multi-file validation once `list_examples` and other MCP tools resume normal behavior.
 
-# License
+## Support Contacts
 
-MIT License.
+- Report MCP transport or tool issues through the `jac-mcp` repository or issue tracker.
