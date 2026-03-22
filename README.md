@@ -1,72 +1,212 @@
-# Jac MCP Playground
+# Jac MCP Studio
 
-A focused developer utility that exercises MCP compiler tooling through a Jac-only frontend/back-end stack. The application orchestrates walkers that call MCP tools over the streamable-http transport while keeping the UI unaware of underlying JSON-RPC mechanics—ideal for engineering teams evaluating Jac tooling quality and integrations.
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
 
-## Capabilities
+An interactive developer dashboard for working with [Jac](https://www.jac-lang.org/) code via the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). Connect to a Jac MCP server and run tools to validate, format, inspect, and explore Jac code — all from a clean browser UI.
 
-- **Jac validation** via `validate_jac` to enforce full type checking, declarations, and macros.
-- **Code formatting** through `format_jac`, which replaces the editor contents with the normalized output.
-- **Error explanation** via `explain_error` to translate compiler diagnostics into actionable guidance.
-- **Syntax checking** with `check_syntax` for a quick parse-only pass.
-- **Python-to-Jac conversion** using `py_to_jac` to demonstrate cross-language translation.
-- **AST generation** using `get_ast` (tree output) for structural insight.
+> **What is Jac?** Jac is a programming language built on top of Python that adds native support for graph-based computation, AI integration, and object-spatial programming. Learn more at [jac-lang.org](https://www.jac-lang.org/).
 
-## Architecture
+---
 
-1. **Frontend (`frontend/home.cl.jac`)** – Jac JSX interface with editor, response pane, Python converter, and action buttons. It spawns walkers and renders normalized reports/AST outputs.
-2. **Walkers (`main.jac`)** – Each walker performs minimal validation, delegates to a backend service, and reports results for the UI.
-3. **Service layer (`backend/service.jac`)** – Manages streamable-http session lifecycle, wraps MCP tool calls (`validate_code_service`, `format_code_service`, etc.), and flattens the JSON-RPC content envelope into a consistent response shape.
-4. **Utilities (`backend/utils.jac`)** – Common helpers to fabricate empty-input responses and extract the first compiler error message for UI hints.
+## Screenshots
 
-## System Architecture & Design
+![Home](assets/home.png)
 
-- **Three-layer separation** keeps UI, API walkers, and MCP access decoupled. The frontend only spawns walkers; all tool invocation logic lives in backend services, preserving transport isolation.
-- **Streamable HTTP transport** is handled centrally in `backend/service.jac`, covering MCP session init, `tools/call`, retry on 401, and JSON parsing of the result envelope.
-- **Normalized response shape** (`{ok, tool, data, error}`) ensures all UI paths can handle success/failure uniformly without bespoke parsing per tool.
-- **Utility helpers** provide consistent empty-input guards and error extraction so UI notices remain meaningful even when MCP responses are incomplete.
+![Format output with copy](assets/format.png)
+
+![AST output](assets/ast.png)
+
+---
+
+## What it does
+
+| Tool              | What it does                                      |
+| ----------------- | ------------------------------------------------- |
+| **Validate**      | Checks your Jac code for semantic errors          |
+| **Syntax**        | Fast syntax-only check                            |
+| **Format**        | Auto-formats your code and shows the diff         |
+| **AST Tree**      | Renders the abstract syntax tree as readable text |
+| **AST JSON**      | Renders the AST as structured JSON                |
+| **Python → Jac**  | Converts Python code to Jac                       |
+| **Explain Error** | Explains a Jac error message in plain language    |
+| **Examples**      | Lists and loads example Jac programs by category  |
+| **Search Docs**   | Full-text search across Jac documentation         |
+
+---
+
+## Requirements
+
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) for package management
+- Node.js 18+ (for the client build)
+- A modern browser — Chrome, Firefox, Edge, or Safari 16.4+ (the app uses the Clipboard API)
+
+---
+
+## Setup
+
+**1. Clone the repo and enter the project directory**
+
+```bash
+git clone https://github.com/jaseci-labs/mcp-dashboard-studio.git
+cd mcp-dashboard-studio/mcp-dashboard-studio
+```
+
+**2. Create a virtual environment and install all dependencies**
+
+```bash
+uv venv
+uv sync
+```
+
+This installs everything listed in `pyproject.toml`, including `jaclang`, `jac-client`, and `jac-mcp`.
+
+**3. Start everything**
+
+```bash
+bash scripts/dev.sh
+```
+
+This single command:
+
+- Activates the virtual environment
+- Starts the Jac MCP server on `http://127.0.0.1:3001/mcp/` using the **streamable-http** transport
+- Starts the dashboard app
+
+The dashboard opens at `http://localhost:8000`. Press `Ctrl+C` to stop both processes.
+
+> **If port 3001 is already in use**, the script will kill the existing process automatically before starting fresh.
+
+---
+
+## Connecting to the MCP server
+
+1. The server URL is pre-filled as `http://127.0.0.1:3001/mcp/`
+2. Click **Connect**
+3. The status dot in the top-right turns green when connected
+
+All tools are disabled until a connection is established.
+
+---
+
+## Using the tools
+
+### Search bar (top, full width)
+
+Type a keyword and press **Enter** or click **Search** to query the Jac documentation. Results show the title, description, snippet, relevance score, and source URI.
+
+### Code editor (left panel)
+
+Paste or type Jac code in the editor. The toolbar above it has buttons for each code tool — click any of them to run it against the current code. Formatted and AST outputs include a **Copy** button so you can paste the result directly into your editor.
+
+### Tools panel (center)
+
+- **Python → Jac** — paste Python code and click Convert. The result appears below with a Copy button.
+- **Explain Error** — paste an error message and click Explain.
+- **Examples** — click **List Examples** to see available categories. Click a category badge to load its files directly into the output panel.
+
+### Output panel (right)
+
+All tool results appear here. The active tool name is shown at the top. Results update every time you run a tool.
+
+---
+
+## Troubleshooting
+
+**`ERROR: jac-mcp plugin not installed`**
+Run `uv sync` again from inside the project directory. If it still fails, check that `pyproject.toml` exists and contains `jac-mcp` in the dependencies.
+
+**Connect button fails / stays orange**
+
+- Make sure `scripts/dev.sh` is running — the dashboard alone cannot connect without the MCP server.
+- Check that the URL in the input matches what the script prints (`http://127.0.0.1:3001/mcp/`).
+- Look at the terminal output for any MCP server startup errors.
+
+**Blank page in the browser**
+
+- Confirm Node.js 18+ is installed: `node --version`
+- Check the terminal for build errors after `jac start` launches.
+- Hard-refresh the browser (`Ctrl+Shift+R`) to clear any cached build.
+
+**`ERROR: .venv not found`**
+Run `uv venv && uv sync` before running the script.
+
+**Copy buttons don't work**
+The app uses the browser Clipboard API which requires a secure context. Make sure you are accessing the app over `http://localhost` (not a raw IP like `http://0.0.0.0`).
+
+---
+
+## Project structure
 
 ```
-Frontend UI (home.cl.jac)
-        │
-        ▼
-   Walkers (main.jac)
-        │
-        ▼
-Service layer (backend/service.jac)
-        │
-        ▼
-   MCP Server (jac-mcp)
+mcp-dashboard-studio/
+├── main.jac                  # App entry point and walker definitions
+├── jac.toml                  # Project config (dependencies, server, plugins)
+├── pyproject.toml            # Python dependencies (used by uv sync)
+├── scripts/
+│   └── dev.sh                # Starts MCP server + dashboard together
+├── frontend/
+│   └── Dashboard.cl.jac      # Main UI component
+├── backend/
+│   ├── service.jac           # MCP HTTP communication layer
+│   └── utils.jac             # Input validation helpers
+├── components/               # Reusable UI components
+│   ├── CodeBlock.cl.jac
+│   ├── Button.cl.jac
+│   ├── Badge.cl.jac
+│   ├── Card.cl.jac
+│   └── Spinner.cl.jac
+├── tests/
+│   ├── utils_test.jac        # Unit tests for backend/utils.jac
+│   ├── service_test.jac      # Tests for backend/service.jac
+│   └── walkers_test.jac      # Tests for walker input guards and contracts
+├── assets/
+│   ├── logo.png              # App logo
+│   ├── home.png              # Screenshot — home view
+│   ├── format.png            # Screenshot — format output
+│   └── ast.png               # Screenshot — AST output
+└── styles/
+    └── main.css              # Tailwind CSS entry
 ```
 
-## Running the Playground
+---
 
-### Prerequisites
+## Tests
 
-- Jac compiler with the `jac-mcp` plugin installed in `.venv` (verify via `jac --version`).
-- Port 3001 available for the MCP server.
+Tests live in `tests/` and require no running MCP server.
 
-### Startup
+```bash
+jac test -d tests/
+```
 
-1. Activate the virtual environment: `source .venv/bin/activate` (create with `python -m venv .venv` if absent).
-2. Launch both services with `./scripts/dev.sh`, which:
-   - Frees port 3001 if in use.
-   - Starts `jac mcp --transport streamable-http --port 3001`.
-   - Runs `jac start main.jac --dev` for the full-stack app.
-3. Open the provided browser URL, input Jac or Python code, and interact with the buttons—each action spawns a walker and displays the MCP response.
+| File               | What it covers                                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `utils_test.jac`   | All guard response functions and `extract_first_error` edge cases                                                |
+| `service_test.jac` | `ping_endpoint` returning a graceful error for unreachable URLs                                                  |
+| `walkers_test.jac` | Empty and whitespace input guards, single-report contract, graceful service failure, `set_mcp_server` edge cases |
 
-## Known Issues
+---
 
-- `validate_jac` and `check_syntax` currently report `ok: true` even for invalid Jac snippets on the MCP server, so the UI can’t automatically reject bad code until the server is fixed.
-- `py_to_jac` responses omit a populated `jac_code` field, meaning conversions never appear in the Python converter panel.
-- `list_examples` returns an empty list, so example fetching is unavailable.
-- The service layer now assumes the streamable-http transport (the previous SSE code paths are inactive).
+## Development notes
 
-## Next Steps
+**Always use `scripts/dev.sh`** — it starts both the MCP server and the dashboard together and cleans up both on exit. Running `jac start main.jac` alone will start the UI but no MCP tools will work.
 
-1. Coordinate with the MCP toolchain owners so invalid inputs yield `valid: false` responses and Python conversions include actual Jac output.
-2. Add UI detection for anomalous responses (e.g., `ok: true` with compiler errors or empty translation data) so practitioners see warnings instead of trusting faulty feedback.
-3. Expand the frontend with sample snippets, syntax highlighting, and multi-file validation once `list_examples` and other MCP tools resume normal behavior.
+**Transport** — the MCP server uses the `streamable-http` transport on port `3001`. This is set in `scripts/dev.sh` and matches the default URL shown in the dashboard.
 
-## Support Contacts
+**Hot reload** is enabled by default — changes to `.jac` files reload the browser automatically.
 
-- Report MCP transport or tool issues through the `jac-mcp` repository or issue tracker.
+**Adding npm packages:**
+
+```bash
+jac add --cl <package-name>
+```
+
+**MCP server URL** can be changed at any time from the UI without restarting. Clicking Connect re-initializes the MCP session with the new URL.
+
+**The backend never stores code** — all tool calls are forwarded directly to the MCP server and results are held only in the browser's UI state.
+
+---
+
+## License
+
+[MIT](LICENSE) — free to use, modify, and distribute.
