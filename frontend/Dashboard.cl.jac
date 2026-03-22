@@ -122,10 +122,19 @@ def:pub DashboardPage() -> JsxElement {
             cats = data["categories"]
                 if "categories" in data
                 else (data["examples"] if "examples" in data else data);
-            return str(len(cats)) + " categories available.";
+            return str(len(cats)) + " examples available.";
         } elif tool == "get_example" {
-            files = data["files"] if "files" in data else data;
-            return str(len(files)) + " file(s) loaded.";
+            content: str = str(data["content"]) if "content" in data else "";
+            file_count: int = len(
+                [
+                    p
+                    for p in content.split("\n--- ")
+                    if p
+                ]
+            )
+                if content
+                else 0;
+            return str(file_count) + " file(s) loaded.";
         } elif tool == "search_docs" {
             results: list = data["results"] if "results" in data else [];
             return str(len(results)) + " result(s) found."
@@ -459,13 +468,13 @@ def:pub DashboardPage() -> JsxElement {
             <div className="flex flex-wrap gap-1.5">
                 {[
                     <button
-                        key={c}
-                        onClick={lambda -> None { example_name = c;runTool(
-                            "get_example", {"name": c}
+                        key={c["name"]}
+                        onClick={lambda -> None { example_name = str(c["name"]);runTool(
+                            "get_example", {"name": str(c["name"])}
                         );}}
                         className="px-2 py-0.5 text-[11px] rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 hover:bg-orange-500/30 transition cursor-pointer"
                     >
-                        {c}
+                        {c["name"]}
                     </button> for c in cats
                 ]}
             </div>;
@@ -479,29 +488,74 @@ def:pub DashboardPage() -> JsxElement {
             return renderErr();
         }
         data = current_result["data"] if "data" in current_result else {};
-        files = data["files"]
-            if "files" in data
-            else (data if not Array.isArray(data) else {});
-        fkeys: list = Object.keys(files);
-        if len(fkeys) == 0 {
+        content: str = str(data["content"]) if "content" in data else "";
+        if not content {
             return
                 <div className="text-xs text-zinc-500">
-                    No files found.
+                    No content found.
                 </div>;
         }
+        sections: list = [
+            s
+            for s in content.split("\n--- ")
+            if s.trim()
+        ];
+        ex_name: str = str(data["name"]) if "name" in data else "";
         return
             <div className="space-y-3">
-                {[
-                    <div key={fname}>
-                        <p className="text-[10px] font-mono text-zinc-500 mb-1">
-                            {fname}
-                        </p>
-                        <pre
-                            className="text-[11px] text-zinc-300 max-h-[200px] overflow-auto bg-[#0d0e10] p-3 rounded-lg border border-white/5"
+                {ex_name
+                and <div className="flex items-center gap-2 mb-1">
+                    <span
+                        className="text-[9px] font-mono font-semibold px-2 py-0.5 rounded-md border text-orange-400 bg-orange-500/10 border-orange-500/20"
+                    >
+                        EXAMPLE
+                    </span>
+                    <span className="text-[11px] font-mono text-zinc-300">
+                        {ex_name}
+                    </span>
+                    <span className="text-[10px] text-zinc-600">
+                        {str(len(sections)) + " file(s)"}
+                    </span>
+                </div>}{[
+                    <div
+                        key={s.split("\n")[0]}
+                        className="rounded-lg overflow-hidden border border-white/[0.06]"
+                    >
+                        <div
+                            className="flex items-center justify-between px-3 py-2 bg-orange-950/20 border-b border-orange-900/20"
                         >
-                            {files[fname]}
+                            <div className="flex items-center gap-2.5">
+                                <span
+                                    className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border text-orange-400/80 bg-orange-500/10 border-orange-500/20"
+                                >
+                                    JAC
+                                </span>
+                                <span className="text-[11px] font-mono text-zinc-300">
+                                    {s.split("\n")[0].replace(" ---", "")}
+                                </span>
+                                <span className="text-[10px] text-zinc-600">
+                                    {str(
+                                        s.split("\n").slice(1).join("\n").split(
+                                            "\n"
+                                        ).length
+                                    ) + " lines"}
+                                </span>
+                            </div>
+                            <button
+                                onClick={lambda -> None { navigator.clipboard.writeText(
+                                    s.split("\n").slice(1).join("\n")
+                                );}}
+                                className="px-2 py-1 text-[9px] rounded-md border transition bg-white/5 hover:bg-white/10 border-white/10"
+                            >
+                                Copy
+                            </button>
+                        </div>
+                        <pre
+                            className="text-[11px] leading-5 text-orange-100/70 max-h-[300px] overflow-auto bg-[#070809] p-3 whitespace-pre-wrap break-words font-mono"
+                        >
+                            {s.split("\n").slice(1).join("\n")}
                         </pre>
-                    </div> for fname in fkeys
+                    </div> for s in sections
                 ]}
             </div>;
     }
@@ -905,7 +959,8 @@ def:pub DashboardPage() -> JsxElement {
                                             className="text-xs font-mono text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 p-2 rounded-lg"
                                         >
                                             {str(w)}
-                                        </div> for w in current_result["data"]["warnings"]
+                                        </div>
+                                        for w in current_result["data"]["warnings"]
                                     ]}
                                 </div>}
                             </div>}
