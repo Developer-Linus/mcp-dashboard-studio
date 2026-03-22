@@ -48,7 +48,7 @@ An interactive developer dashboard for working with [Jac](https://www.jac-lang.o
 **1. Clone the repo and enter the project directory**
 
 ```bash
-git clone https://github.com/jaseci-labs/mcp-dashboard-studio.git
+git clone https://github.com/Developer-Linus/mcp-dashboard-studio.git
 cd mcp-dashboard-studio/mcp-dashboard-studio
 ```
 
