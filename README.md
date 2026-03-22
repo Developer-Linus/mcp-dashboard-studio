@@ -49,7 +49,7 @@ An interactive developer dashboard for working with [Jac](https://www.jac-lang.o
 
 ```bash
 git clone https://github.com/Developer-Linus/mcp-dashboard-studio.git
-cd mcp-dashboard-studio/mcp-dashboard-studio
+cd mcp-dashboard-studio
 ```
 
 **2. Create a virtual environment and install all dependencies**
