@@ -1,40 +1,24 @@
 [project]
-name = "jac-mcp-playground"
+name = "mcp-dashboard-studio"
 version = "1.0.0"
-description = "Jac client application: jac-mcp-playground"
+description = "Developer dashboard for jac-mcp tools"
 entry-point = "main.jac"
-
-[plugins.client.vite]
-plugins = ["tailwindcss()"]
-lib_imports = ["import tailwindcss from '@tailwindcss/vite'"]
-
-[plugins.mcp]
-transport = "streamable-http"
-port = 3001
-host = "127.0.0.1"
-expose_grammar = true
-expose_docs = true
-expose_examples = true
-expose_pitfalls = true
-enable_validate = true
-enable_format = true
-enable_py2jac = true
-enable_ast = true
-project_root = "."
 
 [dependencies.npm]
 jac-client-node = "1.0.7"
-tailwindcss = "latest"
-"@tailwindcss/vite" = "latest"
-zod = "latest"
-react-hook-form = "latest"
-"@hookform/resolvers" = "latest"
 
 [dependencies.npm.dev]
 "@jac-client/dev-deps" = "2.0.0"
+"@tailwindcss/vite" = "^4.1.17"
 
 [dev-dependencies]
 watchdog = ">=3.0.0"
 
 [serve]
 base_route_app = "app"
+
+[plugins.client]
+
+[plugins.client.vite]
+plugins = ["tailwindcss()"]
+lib_imports = ["import tailwindcss from '@tailwindcss/vite'"]
