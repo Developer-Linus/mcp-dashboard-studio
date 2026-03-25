@@ -13,15 +13,15 @@ wheels = [
 
 [[package]]
 name = "anyio"
-version = "4.12.1"
+version = "4.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/f0/5eb65b2bb0d09ac6776f2eb54adee6abe8228ea05b20a5ad0e4945de8aac/anyio-4.12.1.tar.gz", hash = "sha256:41cfcc3a4c85d3f05c932da7c26d0201ac36f72abd4435ba90d0464a3ffed703", size = 228685, upload-time = "2026-01-06T11:45:21.246Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/19/14/2c5dd9f512b66549ae92767a9c7b330ae88e1932ca57876909410251fe13/anyio-4.13.0.tar.gz", hash = "sha256:334b70e641fd2221c1505b3890c69882fe4a2df910cba14d97019b90b24439dc", size = 231622, upload-time = "2026-03-24T12:59:09.671Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/0e/27be9fdef66e72d64c0cdc3cc2823101b80585f8119b5c112c2e8f5f7dab/anyio-4.12.1-py3-none-any.whl", hash = "sha256:d405828884fc140aa80a3c667b8beed277f1dfedec42ba031bd6ac3db606ab6c", size = 113592, upload-time = "2026-01-06T11:45:19.497Z" },
+    { url = "https://files.pythonhosted.org/packages/da/42/e921fccf5015463e32a3cf6ee7f980a6ed0f395ceeaa45060b61d86486c2/anyio-4.13.0-py3-none-any.whl", hash = "sha256:08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708", size = 114353, upload-time = "2026-03-24T12:59:08.246Z" },
 ]
 
 [[package]]
@@ -230,35 +230,39 @@ wheels = [
 
 [[package]]
 name = "jac-client"
-version = "0.3.6"
+version = "0.3.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jaclang" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2f/58/cceed52c10945fe3e412c1f81d481e9d3d74a0faf3968f8608e9c3b5ecbd/jac_client-0.3.6.tar.gz", hash = "sha256:aa6a0baecffb47902bec84bfbe52fd40bb7946639c9e6f0e3577d2c6a0742134", size = 685370, upload-time = "2026-03-14T13:55:17.874Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/fd/60dd6e6ee207cff9015158c8426f36b5dee70b86f1669b56d4ca5a1fa6e5/jac_client-0.3.8.tar.gz", hash = "sha256:20f8a0f97d62480d33797b956c4e84380d26464e1e7b76e7ac8a30f2ed7001b1", size = 724549, upload-time = "2026-03-24T15:38:52.571Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/19/31/dfe9bff93db4dcfc35806b833a3d41d1c818259a70df50b12163610fd9e2/jac_client-0.3.6-py3-none-any.whl", hash = "sha256:4ce156d2a0044b439a6bc43a1a33109063e94d0a2800055dd1f82a580bc44a86", size = 873715, upload-time = "2026-03-14T13:55:15.745Z" },
+    { url = "https://files.pythonhosted.org/packages/13/9f/b29ed4980fa8938c9a21bb7b2af4d36c4240f29591d88779af50c665ced6/jac_client-0.3.8-py3-none-any.whl", hash = "sha256:c7714ff64ee3cf7883a69af6c6699689f98040f8b17a4362d82a63cb0181e449", size = 912974, upload-time = "2026-03-24T15:38:50.8Z" },
 ]
 
 [[package]]
 name = "jac-mcp"
-version = "0.1.5"
-source = { git = "https://github.com/jaseci-labs/jaseci.git?subdirectory=jac-mcp#12e00dca553a1175aea8e79853ab30b028d3df95" }
+version = "0.1.7"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jaclang" },
     { name = "mcp" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/84/cb/a5b1f925835b5247e840b5c272eba4bc4d941f9ee4fcd882c241597db65f/jac_mcp-0.1.7.tar.gz", hash = "sha256:c748dbff5f893593a725f8581ba67b1ccc06222f39e30dddc9720a25587bcb9a", size = 481634, upload-time = "2026-03-24T15:38:56.054Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/62/3fe624314d750a70db6a86585b94defdf147e482eded6157edb623bedb7e/jac_mcp-0.1.7-py3-none-any.whl", hash = "sha256:3e68de29084bf30c73b3be14896b498e2c26538a37d591267d113b9742ea2e1a", size = 532946, upload-time = "2026-03-24T15:38:53.245Z" },
+]
 
 [[package]]
 name = "jaclang"
-version = "0.12.2"
+version = "0.13.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "llvmlite" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9a/40/8375d946431e675c613098dffe840f95384f18667193327a5be986fe444c/jaclang-0.12.2.tar.gz", hash = "sha256:7fd658fe1da05ebebd55f91c766b9ccd59e81d3ab89c3dc41b20391dd6b21c1f", size = 8179167, upload-time = "2026-03-14T13:54:52.636Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/f4/a03af7be8231816049eb23e38e34bc2dd5d6d0df178f0d6fd25a6a4623dd/jaclang-0.13.1.tar.gz", hash = "sha256:e0790b1943e5981399fd9b44c18a27e083a07c2d982a43410285d1bd6cb22b04", size = 8529612, upload-time = "2026-03-24T15:38:20.853Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/07/0d/a3d86da289927fbcdf1724fb90506ddd5032d0280c392c4be2daadfcc733/jaclang-0.12.2-py3-none-any.whl", hash = "sha256:4080514fd5f6bd2f87d83595a6c72a20655c13d992732d007b0fcb1fcaa28528", size = 10436909, upload-time = "2026-03-14T13:54:50.053Z" },
+    { url = "https://files.pythonhosted.org/packages/fe/e4/49094e151ba890a96f7eb27f6c247fe9d8440050c7211c65784c3e38da7f/jaclang-0.13.1-py3-none-any.whl", hash = "sha256:2a5e0d1a484793c01b95cab7813450a7d3d29313fa646872a00441a520707bfd", size = 10829866, upload-time = "2026-03-24T15:38:18.44Z" },
 ]
 
 [[package]]
@@ -346,9 +350,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jac-client", specifier = ">=0.3.6" },
-    { name = "jac-mcp", git = "https://github.com/jaseci-labs/jaseci.git?subdirectory=jac-mcp" },
-    { name = "jaclang", specifier = ">=0.12.2" },
+    { name = "jac-client", specifier = ">=0.3.8" },
+    { name = "jac-mcp", specifier = "==0.1.7" },
+    { name = "jaclang", specifier = ">=0.13.1" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
 
@@ -619,15 +623,15 @@ wheels = [
 
 [[package]]
 name = "starlette"
-version = "0.52.1"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c4/68/79977123bb7be889ad680d79a40f339082c1978b5cfcf62c2d8d196873ac/starlette-0.52.1.tar.gz", hash = "sha256:834edd1b0a23167694292e94f597773bc3f89f362be6effee198165a35d62933", size = 2653702, upload-time = "2026-01-18T13:34:11.062Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/69/17425771797c36cded50b7fe44e850315d039f28b15901ab44839e70b593/starlette-1.0.0.tar.gz", hash = "sha256:6a4beaf1f81bb472fd19ea9b918b50dc3a77a6f2e190a12954b25e6ed5eea149", size = 2655289, upload-time = "2026-03-22T18:29:46.779Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/0d/13d1d239a25cbfb19e740db83143e95c772a1fe10202dda4b76792b114dd/starlette-0.52.1-py3-none-any.whl", hash = "sha256:0029d43eb3d273bc4f83a08720b4912ea4b071087a3b48db01b7c839f7954d74", size = 74272, upload-time = "2026-01-18T13:34:09.188Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/c9/584bc9651441b4ba60cc4d557d8a547b5aff901af35bda3a4ee30c819b82/starlette-1.0.0-py3-none-any.whl", hash = "sha256:d3ec55e0bb321692d275455ddfd3df75fff145d009685eb40dc91fc66b03d38b", size = 72651, upload-time = "2026-03-22T18:29:45.111Z" },
 ]
 
 [[package]]
