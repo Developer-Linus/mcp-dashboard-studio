@@ -1,12 +1,7 @@
 """Utility helpers — empty-input guards and result extraction."""
 
 def _empty(tool_name: str, msg: str) -> dict {
-    return {
-        "ok": False,
-        "tool": tool_name,
-        "data": {},
-        "error": {"message": msg}
-    };
+    return {"ok": False, "tool": tool_name, "data": {}, "error": {"message": msg}};
 }
 
 def:pub empty_code_response(tool_name: str) -> dict {
@@ -27,8 +22,9 @@ def:pub empty_query_response -> dict {
 
 def:pub extract_first_error(result: dict) -> str {
     try {
-        return result["data"]["errors"][0]["message"];
-    } except Exception {
+        msg: str = str(result["data"]["errors"][0]["message"]);
+        return msg;
+    } except (KeyError, TypeError, IndexError) {
         return "";
     }
 }
